@@ -29,7 +29,8 @@ class Bbox:
         self.xy2 = xy2
 
     def __iter__(self):
-        yield from self.__dict__.values()
+        for pp in self.__dict__.values():
+            yield from pp
 
 
 def get_bbox(polygons=POLYGONS) -> Bbox:
@@ -44,8 +45,7 @@ class Header:
     def __init__(self, polygons=POLYGONS):
         self.magic = 0x1234
         bbox = get_bbox(polygons)
-        self.x1, self.y1 = bbox.xy1
-        self.x2, self.y2 = bbox.xy2
+        self.x1, self.y1, self.x2, self.y2 = bbox
         self.num_polygons = 3
 
     def __repr__(self):
