@@ -69,6 +69,9 @@ class Header:
     def reference(cls, polygons=POLYGONS) -> Self:
         return cls(0x1234, *get_bbox(polygons), len(polygons))
 
+    def __iter__(self):
+        yield from self.__dict__.values()
+
     def __repr__(self):
         args = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
         return f"{type(self).__name__}({args})"
@@ -77,12 +80,7 @@ class Header:
         f.write(
             struct.pack(
                 "<iddddi",
-                self.magic,
-                self.x1,
-                self.y1,
-                self.x2,
-                self.y2,
-                self.num_polygons,
+                *self,
             )
         )
 
