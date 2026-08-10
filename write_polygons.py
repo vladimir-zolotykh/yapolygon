@@ -53,14 +53,21 @@ class Header:
         self.y2 = y2
         self.num_polygons = num_polygons
 
+    def __eq__(self, other) -> bool:
+        return (
+            self.__dict__ == other.__dict__
+            if isinstance(other, type(self))
+            else NotImplemented
+        )
+
     @classmethod
-    def from_file(f: BinaryIO) -> Self:
+    def from_file(cls, f: BinaryIO) -> Self:
         magic, x1, y1, x2, y2, num_polygons = struct.unpack("<iddddi", f.read(40))
         return Header(magic, x1, y1, x2, y2, num_polygons)
 
     @classmethod
     def reference(cls, polygons=POLYGONS) -> Self:
-        cls(0x1234, *get_bbox(polygons), len(polygons))
+        return cls(0x1234, *get_bbox(polygons), len(polygons))
 
     def __repr__(self):
         args = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
@@ -81,7 +88,7 @@ class Header:
 
 
 def test_header_init():
-    h: Header = Header()
+    h: Header = Header.reference()
     assert (
         str(h) == "Header(magic=4660, x1=0.5, y1=0.5, x2=7.0, y2=9.2, num_polygons=3)"
     )
@@ -94,9 +101,10 @@ def test_write_read():
     h = Header.reference()
     with open(HEADER, "wb") as f:
         h.write_to(f)
-    assert Header.from_file(f) == h
+    with open(HEADER, "rb") as f:
+        assert Header.from_file(f) == h
 
 
 if __name__ == "__main__":
-    h: Header = Header()
+    h: Header = Header.reference()
     print(h)
