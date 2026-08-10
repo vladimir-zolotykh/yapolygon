@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 from itertools import chain
+import pytest
 from typeguard import typechecked
 
 
@@ -51,6 +52,13 @@ class Header:
     def __repr__(self):
         args = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
         return f"{type(self).__name__}({args})"
+
+
+def test_header_init():
+    h: Header = Header()
+    assert (
+        str(h) == "Header(magic=4660, x1=0.5, y1=0.5, x2=7.0, y2=9.2, num_polygons=3)"
+    )
 
 
 if __name__ == "__main__":
