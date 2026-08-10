@@ -47,7 +47,7 @@ class Header:
         self.magic = 0x1234
         bbox = get_bbox(polygons)
         self.x1, self.y1, self.x2, self.y2 = bbox
-        self.num_polygons = 3
+        self.num_polygons = len(polygons)
 
     def __repr__(self):
         args = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
