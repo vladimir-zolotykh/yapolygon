@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
+from typing import BinaryIO, Self
 from itertools import chain
+import struct
 import pytest
 from typeguard import typechecked
 
@@ -43,15 +45,39 @@ def get_bbox(polygons=POLYGONS) -> Bbox:
 
 
 class Header:
-    def __init__(self, polygons=POLYGONS):
-        self.magic = 0x1234
-        bbox = get_bbox(polygons)
-        self.x1, self.y1, self.x2, self.y2 = bbox
-        self.num_polygons = len(polygons)
+    def __init__(self, magic, x1, y1, x2, y2, num_polygons):
+        self.magic = magic
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+        self.num_polygons = num_polygons
+
+    @classmethod
+    def from_file(f: BinaryIO) -> Self:
+        magic, x1, y1, x2, y2, num_polygons = struct.unpack("<iddddi", f.read(40))
+        return Header(magic, x1, y1, x2, y2, num_polygons)
+
+    @classmethod
+    def reference(cls, polygons=POLYGONS) -> Self:
+        cls(0x1234, *get_bbox(polygons), len(polygons))
 
     def __repr__(self):
         args = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
         return f"{type(self).__name__}({args})"
+
+    def write_to(self, f: BinaryIO) -> None:
+        f.write(
+            struct.pack(
+                "<iddddi",
+                self.magic,
+                self.x1,
+                self.y1,
+                self.x2,
+                self.y2,
+                self.num_polygons,
+            )
+        )
 
 
 def test_header_init():
@@ -59,6 +85,16 @@ def test_header_init():
     assert (
         str(h) == "Header(magic=4660, x1=0.5, y1=0.5, x2=7.0, y2=9.2, num_polygons=3)"
     )
+
+
+HEADER = "header.dat"
+
+
+def test_write_read():
+    h = Header.reference()
+    with open(HEADER, "wb") as f:
+        h.write_to(f)
+    assert Header.from_file(f) == h
 
 
 if __name__ == "__main__":
