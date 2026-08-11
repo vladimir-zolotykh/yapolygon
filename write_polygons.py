@@ -91,7 +91,7 @@ def test_header_init():
 HEADER = "header.dat"
 
 
-def test_write_read():
+def test_header_write_read():
     h = Header.reference()
     with open(HEADER, "wb") as f:
         h.write_to(f)
