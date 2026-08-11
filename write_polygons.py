@@ -13,6 +13,8 @@ PointType = tuple[float, float]
 PolygonType = list[PointType]
 PolygonsType = list[PolygonType]
 
+_I = struct.Struct("<i")
+_DD = struct.Struct("<dd")
 POLYGONS: PolygonsType = [
     [(1.0, 2.5), (3.5, 4.0), (2.5, 1.5)],
     [(7.0, 1.2), (5.1, 3.0), (0.5, 7.5), (0.8, 9.0)],
@@ -104,15 +106,12 @@ def write_polygons(f: BinaryIO, polygons: PolygonsType = POLYGONS) -> None:
 class Polygon(UserList):
     @classmethod
     def from_file(cls, f: BinaryIO) -> Self:
-        (sz,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
-        return cls(
-            struct.unpack("<dd", f.read(struct.calcsize("<dd")))
-            for _ in range(sz // struct.calcsize("<dd"))
-        )
+        (sz,) = _I.unpack(f.read(_I.size))
+        return cls(_DD.unpack(f.read(_DD.size)) for _ in range(sz // _DD.size))
 
 
 def read_polygons(f: BinaryIO) -> PolygonsType:
-    (num_polygons,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
+    (num_polygons,) = _I.unpack(f.read(_I.size))
     return [Polygon.from_file(f) for _ in range(num_polygons)]
 
 
