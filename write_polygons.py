@@ -6,7 +6,6 @@ from io import BytesIO
 from collections import UserList
 from itertools import chain
 import struct
-import pytest
 from typeguard import typechecked
 
 PointType = tuple[float, float]
@@ -15,6 +14,8 @@ PolygonsType = list[PolygonType]
 
 _I = struct.Struct("<i")
 _DD = struct.Struct("<dd")
+_IDDDDI = struct.Struct("<iddddi")
+
 POLYGONS: PolygonsType = [
     [(1.0, 2.5), (3.5, 4.0), (2.5, 1.5)],
     [(7.0, 1.2), (5.1, 3.0), (0.5, 7.5), (0.8, 9.0)],
@@ -52,8 +53,6 @@ def get_bbox(polygons: PolygonsType = POLYGONS) -> Bbox:
 
 
 class Header:
-    I4DI = struct.Struct("<iddddi")
-
     def __init__(self, magic, x1, y1, x2, y2, num_polygons):
         for name, value in locals().items():
             if name != "self":
@@ -68,7 +67,7 @@ class Header:
 
     @classmethod
     def from_file(cls, f: BinaryIO) -> Self:
-        return cls(*cls.I4DI.unpack(f.read(cls.I4DI.size)))
+        return cls(*_IDDDDI.unpack(f.read(_IDDDDI.size)))
 
     @classmethod
     def reference(cls, polygons: PolygonsType = POLYGONS) -> Self:
@@ -82,7 +81,7 @@ class Header:
         return f"{type(self).__name__}({args})"
 
     def write_to(self, f: BinaryIO) -> None:
-        f.write(self.I4DI.pack(*self))
+        f.write(_IDDDDI.pack(*self))
 
 
 def test_header_init():
@@ -93,13 +92,13 @@ def test_header_init():
 
 
 def write_polygons(f: BinaryIO, polygons: PolygonsType = POLYGONS) -> None:
-    f.write(struct.pack("<i", len(polygons)))
+    f.write(_I.pack(len(polygons)))
     for polygon in polygons:
         buf = BytesIO()
         for point in polygon:
-            buf.write(struct.pack("<dd", *point))
+            buf.write(_DD.pack(*point))
         data = buf.getvalue()
-        f.write(struct.pack("<i", len(data)))
+        f.write(_I.pack(len(data)))
         f.write(data)
 
 
