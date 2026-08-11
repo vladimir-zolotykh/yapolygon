@@ -48,6 +48,8 @@ def get_bbox(polygons: PolygonsType = POLYGONS) -> Bbox:
 
 
 class Header:
+    I4DI = struct.Struct("<iddddi")
+
     def __init__(self, magic, x1, y1, x2, y2, num_polygons):
         for name, value in locals().items():
             if name != "self":
@@ -62,7 +64,7 @@ class Header:
 
     @classmethod
     def from_file(cls, f: BinaryIO) -> Self:
-        return cls(*struct.unpack("<iddddi", f.read(struct.calcsize("<iddddi"))))
+        return cls(*cls.I4DI.unpack(f.read(cls.I4DI.size)))
 
     @classmethod
     def reference(cls, polygons: PolygonsType = POLYGONS) -> Self:
@@ -76,12 +78,7 @@ class Header:
         return f"{type(self).__name__}({args})"
 
     def write_to(self, f: BinaryIO) -> None:
-        f.write(
-            struct.pack(
-                "<iddddi",
-                *self,
-            )
-        )
+        f.write(self.I4DI.pack(*self))
 
 
 def test_header_init():
