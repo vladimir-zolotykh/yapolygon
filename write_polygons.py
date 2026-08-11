@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 from typing import BinaryIO, Self
+from io import BytesIO
 from itertools import chain
 import struct
 import pytest
@@ -88,7 +89,38 @@ def test_header_init():
     )
 
 
+def write_polygons(f: BinaryIO, polygons: PolygonsType = POLYGONS) -> None:
+    f.write(struct.pack("<i", len(polygons)))
+    for polygon in polygons:
+        buf = BytesIO()
+        for point in polygon:
+            buf.write(struct.pack("<dd", *point))
+        data = buf.getvalue()
+        f.write(struct.pack("<i", len(data)))
+        f.write(data)
+
+
+def read_polygons(f: BinaryIO) -> PolygonsType:
+    (num_polygons,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
+    polygons: PolygonsType = []
+    for _ in range(num_polygons):
+        (sz,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
+        polygon: PolygonType = []
+        for _ in range(sz // struct.calcsize("<dd")):
+            polygon.append(struct.unpack("<dd", f.read(struct.calcsize("<dd"))))
+        polygons.append(polygon)
+    return polygons
+
+
 HEADER = "header.dat"
+POLYGONS_FILE = "polygons.dat"
+
+
+def test_polygons_write_read():
+    with open(POLYGONS_FILE, "wb") as f:
+        write_polygons(f)
+    with open(POLYGONS_FILE, "rb") as f:
+        assert read_polygons(f) == POLYGONS
 
 
 def test_header_write_read():
