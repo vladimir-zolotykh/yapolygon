@@ -105,9 +105,10 @@ def read_polygons(f: BinaryIO) -> PolygonsType:
     polygons: PolygonsType = []
     for _ in range(num_polygons):
         (sz,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
-        polygon: PolygonType = []
-        for _ in range(sz // struct.calcsize("<dd")):
-            polygon.append(struct.unpack("<dd", f.read(struct.calcsize("<dd"))))
+        polygon = [
+            struct.unpack("<dd", f.read(struct.calcsize("<dd")))
+            for _ in range(sz // struct.calcsize("<dd"))
+        ]
         polygons.append(polygon)
     return polygons
 
