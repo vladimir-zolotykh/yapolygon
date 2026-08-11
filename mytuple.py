@@ -5,17 +5,18 @@ from operator import itemgetter
 
 
 class TupleMeta(type):
-    def __init__(cls, bases, ns):
+    def __init__(cls, clsname, bases, ns):
+        super().__init__(clsname, bases, ns)
         fields = ns.get("_fields", [])
         for n, name in enumerate(fields):
-            setattr(cls, "name", property(itemgetter(n)))
+            setattr(cls, name, property(itemgetter(n)))
 
 
-class Tuple(tuple):
+class Tuple(tuple, metaclass=TupleMeta):
     def __new__(cls, *args, **kwargs):
         if (n := len(cls._fields)) != len(args):
             raise TypeError(f"{cls!r} gets exactly {n} arguments")
-        return super().__new__(cls, *args, **kwargs)
+        return super().__new__(cls, args)
 
 
 class Person(Tuple):
