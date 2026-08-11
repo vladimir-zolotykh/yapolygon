@@ -7,8 +7,11 @@ import struct
 import pytest
 from typeguard import typechecked
 
+PointType = tuple[float, float]
+PolygonType = list[PointType]
+PolygonsType = list[PolygonType]
 
-POLYGONS = [
+POLYGONS: PolygonsType = [
     [(1.0, 2.5), (3.5, 4.0), (2.5, 1.5)],
     [(7.0, 1.2), (5.1, 3.0), (0.5, 7.5), (0.8, 9.0)],
     [(3.4, 6.3), (1.2, 0.5), (4.6, 9.2)],
@@ -36,7 +39,7 @@ class Bbox:
             yield from pp
 
 
-def get_bbox(polygons=POLYGONS) -> Bbox:
+def get_bbox(polygons: PolygonsType = POLYGONS) -> Bbox:
     x1 = min(x for x, _ in chain(*polygons))
     y1 = min(y for _, y in chain(*polygons))
     x2 = max(x for x, _ in chain(*polygons))
@@ -46,14 +49,11 @@ def get_bbox(polygons=POLYGONS) -> Bbox:
 
 class Header:
     def __init__(self, magic, x1, y1, x2, y2, num_polygons):
-        self.magic = magic
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
-        self.num_polygons = num_polygons
+        for name, value in locals().items():
+            if name != "self":
+                setattr(self, name, value)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         return (
             self.__dict__ == other.__dict__
             if isinstance(other, type(self))
@@ -62,11 +62,10 @@ class Header:
 
     @classmethod
     def from_file(cls, f: BinaryIO) -> Self:
-        magic, x1, y1, x2, y2, num_polygons = struct.unpack("<iddddi", f.read(40))
-        return Header(magic, x1, y1, x2, y2, num_polygons)
+        return cls(*struct.unpack("<iddddi", f.read(40)))
 
     @classmethod
-    def reference(cls, polygons=POLYGONS) -> Self:
+    def reference(cls, polygons: PolygonsType = POLYGONS) -> Self:
         return cls(0x1234, *get_bbox(polygons), len(polygons))
 
     def __iter__(self):
