@@ -102,15 +102,15 @@ def write_polygons(f: BinaryIO, polygons: PolygonsType = POLYGONS) -> None:
 
 def read_polygons(f: BinaryIO) -> PolygonsType:
     (num_polygons,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
-    polygons: PolygonsType = []
-    for _ in range(num_polygons):
+
+    def read_polygon():
         (sz,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
-        polygon = [
+        return [
             struct.unpack("<dd", f.read(struct.calcsize("<dd")))
             for _ in range(sz // struct.calcsize("<dd"))
         ]
-        polygons.append(polygon)
-    return polygons
+
+    return [read_polygon() for _ in range(num_polygons)]
 
 
 HEADER = "header.dat"
