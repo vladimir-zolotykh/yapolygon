@@ -3,6 +3,7 @@
 # PYTHON_ARGCOMPLETE_OK
 from typing import BinaryIO, Self
 from io import BytesIO
+from collections import UserList
 from itertools import chain
 import struct
 import pytest
@@ -100,17 +101,19 @@ def write_polygons(f: BinaryIO, polygons: PolygonsType = POLYGONS) -> None:
         f.write(data)
 
 
-def read_polygons(f: BinaryIO) -> PolygonsType:
-    (num_polygons,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
-
-    def read_polygon():
+class Polygon(UserList):
+    @classmethod
+    def from_file(cls, f: BinaryIO) -> Self:
         (sz,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
-        return [
+        return cls(
             struct.unpack("<dd", f.read(struct.calcsize("<dd")))
             for _ in range(sz // struct.calcsize("<dd"))
-        ]
+        )
 
-    return [read_polygon() for _ in range(num_polygons)]
+
+def read_polygons(f: BinaryIO) -> PolygonsType:
+    (num_polygons,) = struct.unpack("<i", f.read(struct.calcsize("<i")))
+    return [Polygon.from_file(f) for _ in range(num_polygons)]
 
 
 HEADER = "header.dat"
