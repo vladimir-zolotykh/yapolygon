@@ -62,7 +62,7 @@ class Header:
 
     @classmethod
     def from_file(cls, f: BinaryIO) -> Self:
-        return cls(*struct.unpack("<iddddi", f.read(40)))
+        return cls(*struct.unpack("<iddddi", f.read(struct.calcsize("<iddddi"))))
 
     @classmethod
     def reference(cls, polygons: PolygonsType = POLYGONS) -> Self:
