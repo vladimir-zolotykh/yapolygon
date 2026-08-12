@@ -47,16 +47,14 @@ class FieldMeta(type):
         for key, val in ns0.items():
             if key[:2] == "__" and key[-2:] == "__":
                 continue
-            if isinstance(val, str):
-                ns[key] = FieldStr(key, off, val)
-                off += struct.calcsize(val)
+            if isinstance(val, (str, FieldMeta)):
+                if isinstance(val, str):
+                    ns[key] = FieldStr(key, off, val)
+                    off += struct.calcsize(val)
+                elif isinstance(val, FieldMeta):
+                    ns[key] = FieldType(key, off, val)
+                    off += val.typ_size
                 fields.append(key)
-            elif isinstance(val, FieldMeta):
-                ns[key] = FieldType(key, off, val)
-                off += val.typ_size
-                fields.append(key)
-            else:
-                pass
         ns["typ_size"] = off
         ns["_fields"] = fields
         return super().__new__(mcls, clsname, bases, ns)
