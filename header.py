@@ -25,7 +25,8 @@ class FieldStr(Field):
 
     def fetch(self, instance):
         rng = slice(self.off, self.off + struct.calcsize(self.fmt))
-        return struct.unpack_from(self.fmt, instance._view[rng])
+        t = struct.unpack_from(self.fmt, instance._view[rng])
+        return t[0] if len(t) == 1 else t
 
 
 class FieldType(Field):
@@ -55,7 +56,7 @@ class FieldMeta(type):
                 off += val.typ_size
                 fields.append(key)
             else:
-                raise TypeError(f"{type(val)!r}: must be str or FieldMeta")
+                pass
         ns["typ_size"] = off
         ns["_fields"] = fields
         return super().__new__(mcls, clsname, bases, ns)
@@ -71,13 +72,21 @@ class View(metaclass=FieldMeta):
 
 
 class Point(View):
-    x = "<i"
-    y = "<i"
+    x = "<d"
+    y = "<d"
+
+    def __repr__(self):
+        args = ", ".join(f"{k}={getattr(self, k)!r}" for k in self._fields)
+        return f"{type(self).__name__}({args})"
 
 
 class Bbox(View):
     xy1 = Point
     xy2 = Point
+
+    def __repr__(self):
+        args = ", ".join(f"{k}={getattr(self, k)!r}" for k in self._fields)
+        return f"{type(self).__name__}({args})"
 
 
 class Header(View):
@@ -85,9 +94,13 @@ class Header(View):
     bbox = Bbox
     num_polygons = "<i"
 
+    def __repr__(self):
+        args = ", ".join(f"{k}={getattr(self, k)!r}" for k in self._fields)
+        return f"{type(self).__name__}({args})"
+
 
 HEADER_DAT = ".header.dat"
 if __name__ == "__main__":
-    with open("HEADER_DAT", "rb") as f:
+    with open(HEADER_DAT, "rb") as f:
         h = Header.from_file(f)
-        print(h)
+        print(h.magic, h.bbox, h.num_polygons)
