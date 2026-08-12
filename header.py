@@ -66,6 +66,10 @@ class View(metaclass=FieldMeta):
     def __init__(self, bytesdata: bytes | memoryview):
         self._view = memoryview(bytesdata)
 
+    def __repr__(self):
+        args = ", ".join(f"{k}={getattr(self, k)!r}" for k in self._fields)
+        return f"{type(self).__name__}({args})"
+
     @classmethod
     def from_file(cls, f: BinaryIO) -> Self:
         return cls(f.read(cls.typ_size))
@@ -75,18 +79,10 @@ class Point(View):
     x = "<d"
     y = "<d"
 
-    def __repr__(self):
-        args = ", ".join(f"{k}={getattr(self, k)!r}" for k in self._fields)
-        return f"{type(self).__name__}({args})"
-
 
 class Bbox(View):
     xy1 = Point
     xy2 = Point
-
-    def __repr__(self):
-        args = ", ".join(f"{k}={getattr(self, k)!r}" for k in self._fields)
-        return f"{type(self).__name__}({args})"
 
 
 class Header(View):
@@ -94,13 +90,9 @@ class Header(View):
     bbox = Bbox
     num_polygons = "<i"
 
-    def __repr__(self):
-        args = ", ".join(f"{k}={getattr(self, k)!r}" for k in self._fields)
-        return f"{type(self).__name__}({args})"
-
 
 HEADER_DAT = ".header.dat"
 if __name__ == "__main__":
     with open(HEADER_DAT, "rb") as f:
         h = Header.from_file(f)
-        print(h.magic, h.bbox, h.num_polygons)
+        print(h)
