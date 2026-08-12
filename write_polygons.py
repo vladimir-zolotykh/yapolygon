@@ -114,8 +114,8 @@ def read_polygons(f: BinaryIO) -> PolygonsType:
     return [Polygon.from_file(f) for _ in range(num_polygons)]
 
 
-HEADER = "header.dat"
-POLYGONS_FILE = "polygons.dat"
+HEADER = ".header.dat"
+POLYGONS_FILE = ".polygons.dat"
 
 
 def test_polygons_write_read():
