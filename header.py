@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*- # PYTHON_ARGCOMPLETE_OK
-from typing import BinaryIO
+from typing import BinaryIO, Self
 import struct
 
 
