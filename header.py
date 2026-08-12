@@ -5,8 +5,7 @@ import struct
 
 
 class Field:
-    def __init__(self, fname: str, off: int):
-        self.fname = fname
+    def __init__(self, off: int):
         self.off = off
 
     def fetch(self, instance):
@@ -19,8 +18,8 @@ class Field:
 
 
 class FieldStr(Field):
-    def __init__(self, fname, off, fmt: str):
-        super().__init__(fname, off)
+    def __init__(self, off, fmt: str):
+        super().__init__(off)
         self.strukt = struct.Struct(fmt)
 
     def fetch(self, instance):
@@ -30,8 +29,8 @@ class FieldStr(Field):
 
 
 class FieldType(Field):
-    def __init__(self, fname, off, typ: type):
-        super().__init__(fname, off)
+    def __init__(self, off, typ: type):
+        super().__init__(off)
         self.typ = typ
 
     def fetch(self, instance):
@@ -49,10 +48,10 @@ class FieldMeta(type):
                 continue
             if isinstance(val, (str, FieldMeta)):
                 if isinstance(val, str):
-                    ns[key] = FieldStr(key, off, val)
+                    ns[key] = FieldStr(off, val)
                     off += struct.calcsize(val)
                 elif isinstance(val, FieldMeta):
-                    ns[key] = FieldType(key, off, val)
+                    ns[key] = FieldType(off, val)
                     off += val.typ_size
                 fields.append(key)
         ns["typ_size"] = off
