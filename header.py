@@ -21,11 +21,11 @@ class Field:
 class FieldStr(Field):
     def __init__(self, fname, off, fmt: str):
         super().__init__(fname, off)
-        self.fmt = fmt
+        self.strukt = struct.Struct(fmt)
 
     def fetch(self, instance):
-        rng = slice(self.off, self.off + struct.calcsize(self.fmt))
-        t = struct.unpack_from(self.fmt, instance._view[rng])
+        rng = slice(self.off, self.off + self.strukt.size)
+        t = self.strukt.unpack_from(instance._view[rng])
         return t[0] if len(t) == 1 else t
 
 
