@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*- # PYTHON_ARGCOMPLETE_OK
+from __future__ import annotations
 from typing import BinaryIO, Self
 import struct
+from typeguard import typechecked, TypeCheckError
 
 
 class Field:
@@ -18,7 +20,8 @@ class Field:
 
 
 class FieldStr(Field):
-    def __init__(self, off, fmt: str):
+    @typechecked
+    def __init__(self, off: int, fmt: str):
         super().__init__(off)
         self.strukt = struct.Struct(fmt)
 
@@ -29,7 +32,8 @@ class FieldStr(Field):
 
 
 class FieldType(Field):
-    def __init__(self, off, typ: type):
+    @typechecked
+    def __init__(self, off: int, typ: FieldMeta):
         super().__init__(off)
         self.typ = typ
 
@@ -47,13 +51,14 @@ class FieldMeta(type):
             if key[:2] == "__" and key[-2:] == "__":
                 continue
             if isinstance(val, (str, FieldMeta)):
-                if isinstance(val, str):
+                try:
                     ns[key] = FieldStr(off, val)
                     off += struct.calcsize(val)
-                elif isinstance(val, FieldMeta):
+                except TypeCheckError:
                     ns[key] = FieldType(off, val)
                     off += val.typ_size
-                fields.append(key)
+                finally:
+                    fields.append(key)
         ns["typ_size"] = off
         ns["_fields"] = fields
         return super().__new__(mcls, clsname, bases, ns)
