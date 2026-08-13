@@ -115,20 +115,13 @@ class Polygon(View):
 
     @iter_as.register
     def _(self, fmt: str = "<dd") -> Iterator[tuple[float, float]]:
-        self.iter_type(struct.calcsize(fmt), partial(struct.unpack_from, str))
-
-        # sz = struct.calcsize(fmt)
-        # for off in range(0, len(self._view), sz):
-        #     rng = slice(off, off + sz)
-        #     yield struct.unpack_from(str, self._view[rng])
+        yield from self.iter_type(
+            struct.calcsize(fmt), partial(struct.unpack_from, fmt)
+        )
 
     @iter_as.register
     def _(self, typ: FieldMeta) -> Iterator[FieldMeta]:
-        self.iter_type(typ.typ_size, typ)
-        # sz = typ.typ_size
-        # for off in range(0, len(self._view), sz):
-        #     rng = slice(off, off + sz)
-        #     yield typ(self._view[rng])
+        yield from self.iter_type(typ.typ_size, typ)
 
 
 HEADER_DAT = ".headerpolygons.dat"
@@ -138,4 +131,6 @@ if __name__ == "__main__":
         print(h)
         for _ in range(h.num_polygons):
             polygon = Polygon.from_file(f)
-            print(polygon.iter_as("<dd"))
+            # for p in polygon.iter_as("<dd"):
+            for p in polygon.iter_as(Point):
+                print(p)
