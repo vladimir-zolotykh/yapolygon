@@ -6,7 +6,8 @@ from io import BytesIO
 from collections import UserList
 from itertools import chain
 import struct
-from typeguard import typechecked
+from beartype import beartype
+from typeguard import typechecked  # noqa: F401
 
 PointType = tuple[float, float]
 PolygonType = list[PointType]
@@ -24,7 +25,8 @@ POLYGONS: PolygonsType = [
 
 
 class Point:
-    @typechecked
+    # @typechecked
+    @beartype
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
@@ -34,7 +36,8 @@ class Point:
 
 
 class Bbox:
-    @typechecked
+    # @typechecked
+    @beartype
     def __init__(self, xy1: Point, xy2: Point):
         self.xy1 = xy1
         self.xy2 = xy2
@@ -133,6 +136,15 @@ def test_header_write_read():
         assert Header.from_file(f) == h
 
 
+def write_header_polygons(filename: str = "") -> None:
+    h = Header.reference()
+    with open(filename, "wb") as f:
+        h.write_to(f)
+        write_polygons(f)
+        # print(f.tell())
+
+
 if __name__ == "__main__":
-    h: Header = Header.reference()
-    print(h)
+    write_header_polygons(".headerpolygons.dat")
+    # h: Header = Header.reference()
+    # print(h)
