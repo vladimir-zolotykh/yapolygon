@@ -95,7 +95,7 @@ def test_header_init():
 
 
 def write_polygons(f: BinaryIO, polygons: PolygonsType = POLYGONS) -> None:
-    f.write(_I.pack(len(polygons)))
+    # f.write(_I.pack(len(polygons)))
     for polygon in polygons:
         buf = BytesIO()
         for point in polygon:
@@ -141,7 +141,6 @@ def write_header_polygons(filename: str = "") -> None:
     with open(filename, "wb") as f:
         h.write_to(f)
         write_polygons(f)
-        # print(f.tell())
 
 
 if __name__ == "__main__":
