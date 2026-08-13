@@ -111,7 +111,7 @@ class Polygon(View):
 
     @singledispatchmethod
     def iter_as(self, typ: type):
-        raise NotImplementedError
+        raise NotImplementedError(f"Cannot iterate as {typ!r}")
 
     @iter_as.register
     def _(self, fmt: str = "<dd") -> Iterator[tuple[float, float]]:
