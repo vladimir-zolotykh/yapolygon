@@ -126,11 +126,15 @@ class Polygon(View):
 
 HEADER_DAT = ".headerpolygons.dat"
 if __name__ == "__main__":
+    import io
+
     with open(HEADER_DAT, "rb") as f:
         h = Header.from_file(f)
         print(h)
+        polygon1 = Polygon.from_file(io.BytesIO(rest := f.read()))
+        polygon2 = Polygon.from_file(io.BytesIO(rest))
         for _ in range(h.num_polygons):
-            polygon = Polygon.from_file(f)
-            # for p in polygon.iter_as("<dd"):
-            for p in polygon.iter_as(Point):
+            for p in polygon1.iter_as("<dd"):
+                print(p)
+            for p in polygon2.iter_as(Point):
                 print(p)
