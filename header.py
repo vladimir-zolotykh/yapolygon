@@ -7,6 +7,7 @@ import struct
 import copy
 from typeguard import typechecked, TypeCheckError  # noqa: F401
 from beartype import beartype, roar
+from write_polygons import get_bbox, POLYGONS, PolygonsType
 
 
 class Field:
@@ -103,16 +104,43 @@ class Point(View):
     x = "<d"
     y = "<d"
 
+    @classmethod
+    def from_xy(cls, x: float, y: float) -> Self:
+        p = cls.zeros()
+        p.x, p.y = x, y
+        return p
+
 
 class Bbox(View):
     xy1 = Point
     xy2 = Point
+
+    @classmethod
+    def from_points(cls, xy1: Point, xy2: Point) -> Self:
+        b = cls.zeros()
+        b.xy1, b.xy2 = xy1, xy2
+        return b
 
 
 class Header(View):
     magic = "<i"
     bbox = Bbox
     num_polygons = "<i"
+
+    @classmethod
+    def from_values(cls, magic: int, bbox: Bbox, num_polygons: int) -> Self:
+        h = cls.zeros()
+        h.magic, h.bbox, h.num_polygons = magic, bbox, num_polygons
+        return h
+
+    @classmethod
+    def reference(cls, polygons: PolygonsType = POLYGONS) -> Self:
+        x1, y1, x2, y2 = get_bbox(polygons)
+        return cls.from_values(
+            0x1234,
+            Bbox.from_points(Point.from_xy(x1, y1), Point.from_xy(x2, y2)),
+            len(polygons),
+        )
 
 
 class Polygon(View):
