@@ -4,15 +4,20 @@ from __future__ import annotations
 from typing import BinaryIO, Self, Iterator
 from functools import singledispatchmethod, partial
 import struct
+import copy
 from typeguard import typechecked, TypeCheckError  # noqa: F401
 from beartype import beartype, roar
 
 
 class Field:
-    def __init__(self, off: int):
+    def __init__(self, name: str, off: int):
+        self._name = name
         self.off = off
 
     def fetch(self, instance):
+        raise NotImplementedError
+
+    def drop(self, instance, value):
         raise NotImplementedError
 
     def __get__(self, instance, owner=None):
@@ -20,12 +25,15 @@ class Field:
             return None
         return self.fetch(instance)
 
+    def __set__(self, instance, value):
+        self.drop(instance, value)
+
 
 class FieldStr(Field):
     # @typechecked
-    @beartype
-    def __init__(self, off: int, fmt: str):
-        super().__init__(off)
+    # @beartype
+    def __init__(self, name: str, off: int, fmt: str):
+        super().__init__(name, off)
         self.strukt = struct.Struct(fmt)
 
     def fetch(self, instance):
@@ -33,17 +41,24 @@ class FieldStr(Field):
         t = self.strukt.unpack_from(instance._view[rng])
         return t[0] if len(t) == 1 else t
 
+    def drop(self, instance, value):
+        self.strukt.pack_into(instance._view, self.off, value)
+
 
 class FieldType(Field):
     # @typechecked
-    @beartype
-    def __init__(self, off: int, typ: FieldMeta):
-        super().__init__(off)
+    # @beartype
+    def __init__(self, name: str, off: int, typ: FieldMeta):
+        super().__init__(name, off)
         self.typ = typ
 
     def fetch(self, instance):
         rng = slice(self.off, self.off + self.typ.typ_size)
         return self.typ(instance._view[rng])
+
+    def drop(self, instance, value):
+        rng = slice(self.off, self.off + self.typ.typ_size)
+        instance._view[rng] = value._view
 
 
 class FieldMeta(type):
@@ -55,15 +70,13 @@ class FieldMeta(type):
             if key[:2] == "__" and key[-2:] == "__":
                 continue
             if isinstance(val, (str, FieldMeta)):
-                try:
-                    ns[key] = FieldStr(off, val)
+                if isinstance(val, str):
+                    ns[key] = FieldStr(key, off, val)
                     off += struct.calcsize(val)
-                except roar.BeartypeCallHintParamViolation:
-                    # except TypeCheckError:
-                    ns[key] = FieldType(off, val)
+                elif isinstance(val, FieldMeta):
+                    ns[key] = FieldType(key, off, val)
                     off += val.typ_size
-                finally:
-                    fields.append(key)
+                fields.append(key)
         ns["typ_size"] = off
         ns["_fields"] = fields
         return super().__new__(mcls, clsname, bases, ns)
@@ -80,6 +93,10 @@ class View(metaclass=FieldMeta):
     @classmethod
     def from_file(cls, f: BinaryIO) -> Self:
         return cls(f.read(cls.typ_size))
+
+    @classmethod
+    def zeros(cls) -> Self:
+        return cls(bytearray(cls.typ_size))
 
 
 class Point(View):
