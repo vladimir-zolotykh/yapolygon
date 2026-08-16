@@ -52,8 +52,12 @@ def test_bbox_no_attribue():
         (
             Header(),
             (
-                "Header(magic=0, bbox=Bbox(xy1=Point(x=0.0, y=0.0), "
-                "xy2=Point(x=0.0, y=0.0)), num_polygons=0)"
+                (
+                    "Header(magic=0, "
+                    "       bbox=Bbox(xy1=Point(x=0.0, y=0.0), "
+                    "       xy2=Point(x=0.0, y=0.0)), "
+                    "       num_polygons=0)"
+                )
             ),
         ),
         (
@@ -67,7 +71,7 @@ def test_bbox_no_attribue():
             (
                 "Header(magic=4660, "
                 "       bbox=Bbox(xy1=Point(x=1.0, y=2.0), "
-                "                 xy2=Point(x=10.0, y=20.0)), "
+                "       xy2=Point(x=10.0, y=20.0)), "
                 "       num_polygons=3)"
             ),
         ),
