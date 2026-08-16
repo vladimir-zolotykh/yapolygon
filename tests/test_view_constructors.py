@@ -1,6 +1,6 @@
 import re
 import pytest
-from header import Point, Bbox
+from header import Point, Bbox, Header
 
 
 @pytest.mark.parametrize(
@@ -44,3 +44,16 @@ def test_bbox(bb, expected):
 def test_bbox_no_attribue():
     with pytest.raises(TypeError, match=re.escape("'Bbox' has no attribute(s) xy3")):
         Bbox.from_kwargs(xy3=Point())
+
+
+@pytest.mark.parametrize(
+    "h, expected",
+    [
+        (
+            Header(),
+            "Header(magic=0, bbox=Bbox(xy1=Point(x=0.0, y=0.0), xy2=Point(x=0.0, y=0.0)), num_polygons=0)",
+        ),
+    ],
+)
+def test_header(h, expected):
+    assert str(h) == expected
