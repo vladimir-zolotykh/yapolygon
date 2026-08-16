@@ -65,14 +65,16 @@ def test_bbox_no_attribue():
                 num_polygons=3,
             ),
             (
-                "Header(magic=4660, bbox=Bbox(xy1=Point(x=1.0, y=2.0), "
-                "xy2=Point(x=10.0, y=20.0)), num_polygons=3)"
+                "Header(magic=4660, "
+                "       bbox=Bbox(xy1=Point(x=1.0, y=2.0), "
+                "                 xy2=Point(x=10.0, y=20.0)), "
+                "       num_polygons=3)"
             ),
         ),
     ],
 )
 def test_header(h, expected):
-    assert str(h) == expected
+    assert str(h) == " ".join(expected.split())
 
 
 def test_header_no_attribute():
