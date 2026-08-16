@@ -96,30 +96,26 @@ class View(metaclass=FieldMeta):
         return cls(f.read(cls.typ_size))
 
     @classmethod
-    def zeros(cls) -> Self:
-        return cls(bytearray(cls.typ_size))
+    def from_kwargs(cls, **kwargs) -> Self:
+        vcls = cls(bytearray(cls.typ_size))
+        for name in cls._fields:
+            if name in kwargs:
+                if name in kwargs:
+                    setattr(vcls, name, kwargs.pop(name))
+        if kwargs:
+            missing = ", ".join(kwargs)
+            raise TypeError(f"{cls.__name__!r} has no attribute(s) for {missing}")
+        return vcls
 
 
 class Point(View):
     x = "<d"
     y = "<d"
 
-    @classmethod
-    def from_xy(cls, x: float, y: float) -> Self:
-        p = cls.zeros()
-        p.x, p.y = x, y
-        return p
-
 
 class Bbox(View):
     xy1 = Point
     xy2 = Point
-
-    @classmethod
-    def from_points(cls, xy1: Point, xy2: Point) -> Self:
-        b = cls.zeros()
-        b.xy1, b.xy2 = xy1, xy2
-        return b
 
 
 class Header(View):
@@ -128,18 +124,14 @@ class Header(View):
     num_polygons = "<i"
 
     @classmethod
-    def from_values(cls, magic: int, bbox: Bbox, num_polygons: int) -> Self:
-        h = cls.zeros()
-        h.magic, h.bbox, h.num_polygons = magic, bbox, num_polygons
-        return h
-
-    @classmethod
     def reference(cls, polygons: PolygonsType = POLYGONS) -> Self:
         x1, y1, x2, y2 = get_bbox(polygons)
-        return cls.from_values(
-            0x1234,
-            Bbox.from_points(Point.from_xy(x1, y1), Point.from_xy(x2, y2)),
-            len(polygons),
+        return cls.from_kwargs(
+            magic=0x1234,
+            bbox=Bbox.from_kwargs(
+                xy1=Point.from_kwargs(x=x1, y=y1), xy2=Point.from_kwargs(x=x2, y=y2)
+            ),
+            num_polygons=len(polygons),
         )
 
 
