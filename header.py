@@ -84,7 +84,9 @@ class FieldMeta(type):
 
 
 class View(metaclass=FieldMeta):
-    def __init__(self, bytesdata: bytes | memoryview):
+    def __init__(self, bytesdata: bytes | memoryview = None):
+        if bytesdata is None:
+            bytesdata = bytearray(type(self).typ_size)
         self._view = memoryview(bytesdata)
 
     def __repr__(self):
