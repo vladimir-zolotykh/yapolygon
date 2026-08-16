@@ -16,7 +16,7 @@ def test_point(point_obj, expected):
 
 
 def test_point_no_attribute():
-    with pytest.raises(TypeError, match=re.escape("'Point' has no attribute(s) for z")):
+    with pytest.raises(TypeError, match=re.escape("'Point' has no attribute(s) z")):
         Point.from_kwargs(x=10, z=30)
 
 
@@ -42,7 +42,5 @@ def test_bbox(bb, expected):
 
 
 def test_bbox_no_attribue():
-    with pytest.raises(
-        TypeError, match=re.escape("'Bbox' has no attribute(s) for xy3")
-    ):
+    with pytest.raises(TypeError, match=re.escape("'Bbox' has no attribute(s) xy3")):
         Bbox.from_kwargs(xy3=Point())

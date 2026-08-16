@@ -106,7 +106,7 @@ class View(metaclass=FieldMeta):
                     setattr(vcls, name, kwargs.pop(name))
         if kwargs:
             missing = ", ".join(kwargs)
-            raise TypeError(f"{cls.__name__!r} has no attribute(s) for {missing}")
+            raise TypeError(f"{cls.__name__!r} has no attribute(s) {missing}")
         return vcls
 
 
