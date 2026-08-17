@@ -31,6 +31,10 @@ class Symbol(metaclass=SingletonMeta):
         self.name = name
         self.pat = pat
 
+    @classmethod
+    def masterpat(cls):
+        return type(cls)._instances[cls]
+
 
 if __name__ == "__main__":
     m1 = Module("functools")
@@ -46,3 +50,4 @@ if __name__ == "__main__":
     WS1 = Symbol("WS", r"\s+")
     WS2 = Symbol("WS", r"\s+")
     assert WS1 is WS2
+    print(Symbol.masterpat())
