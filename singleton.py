@@ -28,7 +28,10 @@ class Logger(metaclass=SingletonMeta):
 if __name__ == "__main__":
     m1 = Module("functools")
     m2 = Module("functools")
+    assert m1 is m2
+    t1 = Module("types")
+    t2 = Module("types")
+    assert t1 is t2
     g1 = Logger("stream")
     g2 = Logger("stream")
-    assert m1 is m2
     assert g1 is g2
