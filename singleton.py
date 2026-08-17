@@ -25,6 +25,13 @@ class Logger(metaclass=SingletonMeta):
         print(f"Initializing {type(self).__name__}({name})")
 
 
+class Symbol(metaclass=SingletonMeta):
+    def __init__(self, name, pat):
+        print(f"Initializing {type(self).__name__}({name})")
+        self.name = name
+        self.pat = pat
+
+
 if __name__ == "__main__":
     m1 = Module("functools")
     m2 = Module("functools")
@@ -35,3 +42,7 @@ if __name__ == "__main__":
     g1 = Logger("stream")
     g2 = Logger("stream")
     assert g1 is g2
+    NAME = Symbol("NAME", r"[A-Za-z_]\w*")
+    WS1 = Symbol("WS", r"\s+")
+    WS2 = Symbol("WS", r"\s+")
+    assert WS1 is WS2
